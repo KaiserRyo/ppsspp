@@ -14,6 +14,10 @@ QMAKE_CLEAN += -r $$OBJECTS_DIR $$MOC_DIR $$UI_DIR $$RCC_DIR
 P = $$_PRO_FILE_PWD_/..
 INCLUDEPATH += $$P/ext/zlib $$P/Common
 
+# To support Sailfish which is stuck on GCC 4.6
+linux-g++:system($$QMAKE_CXX -v | grep "4.6."): DEFINES += "override="
+symbian:system(arm-none-symbianelf-g++ --version | grep "4.6."): DEFINES += "override="
+
 # Work out arch name
 include(Platform/ArchDetection.pri)
 # Work out platform name
@@ -48,7 +52,8 @@ win32-msvc* {
 	DEFINES += __STDC_CONSTANT_MACROS
 	QMAKE_CXXFLAGS += -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -fno-strict-aliasing -Wno-unused-parameter -Wno-multichar -Wno-uninitialized -Wno-ignored-qualifiers -Wno-missing-field-initializers
 	greaterThan(QT_MAJOR_VERSION,4): CONFIG+=c++11
-	else: QMAKE_CXXFLAGS += -std=c++11
+	else:!contains(DEFINES, override.*): QMAKE_CXXFLAGS += -std=c++11
+	else: QMAKE_CXXFLAGS += -std=c++0x
 	QMAKE_CFLAGS_RELEASE ~= s/-O.*/
 	QMAKE_CXXFLAGS_RELEASE ~= s/-O.*/
 	QMAKE_ALLFLAGS_RELEASE += -O3 -ffast-math

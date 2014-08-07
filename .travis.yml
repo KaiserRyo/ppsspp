@@ -3,21 +3,21 @@
 language: cpp
 
 env:
-  - PPSSPP_BUILD_TYPE=Linux
-    CMAKE=TRUE
-  - PPSSPP_BUILD_TYPE=Android
-  - PPSSPP_BUILD_TYPE=Blackberry
-    CMAKE=TRUE
+#  - PPSSPP_BUILD_TYPE=Linux
+#    CMAKE=TRUE
+#  - PPSSPP_BUILD_TYPE=Android
+#  - PPSSPP_BUILD_TYPE=Blackberry
+#    CMAKE=TRUE
   - PPSSPP_BUILD_TYPE=Symbian
 
 compiler:
   - gcc
 
-matrix:
-  include:
-    - compiler: clang
-      env: PPSSPP_BUILD_TYPE=Linux
-           CMAKE=TRUE
+#matrix:
+#  include:
+#    - compiler: clang
+#      env: PPSSPP_BUILD_TYPE=Linux
+#           CMAKE=TRUE
 
 before_install:
   - git submodule update --init --recursive
@@ -58,29 +58,23 @@ install:
       sed -i 's/-g../&-4.8.2/g' Blackberry/bb.toolchain.cmake &&
       export QNX_TARGET="$(pwd)/target_10_3_0_440/qnx6" QNX_HOST="$(pwd)/host_10_3_0_2702/linux/x86" && PATH="$QNX_HOST/usr/bin:$PATH";
     fi
-# Symbian NDK: Belle + GCC: 4.8.3
+# Symbian NDK: Belle + GCC: 4.6.3
   - if [ "$PPSSPP_BUILD_TYPE" == "Symbian" ]; then
       sudo apt-get install lib32stdc++6 lib32bz2-1.0 -qq &&
-      download_extract https://github.com/xsacha/SymbianGCC/releases/download/4.8.3/gcc4.8.3_x86-64.tar.bz2 compiler.tar.bz2 &&
+      mkdir gcc && pushd gcc && download_extract https://googledrive.com/host/0B5UBD4wjtpZ-OEx1b1JuaFhJc3M oldndk.tar.bz2 && popd &&
       download_extract https://github.com/xsacha/SymbianGCC/releases/download/4.8.3/ndk.tar.bz2 ndk.tar.bz2 &&
-      export EPOCROOT=$(pwd)/SDKs/SymbianSR1Qt474/ SBS_GCCE483BIN=$(pwd)/gcc4.8.3_x86-64/bin &&
+      export EPOCROOT=$(pwd)/SDKs/SymbianSR1Qt474/ SBS_GCCE463BIN=$(pwd)/gcc/tools/gcce4/bin &&
       cp ffmpeg/symbian/armv6/lib/* $EPOCROOT/epoc32/release/armv5/urel/ &&
-      PATH=$SBS_GCCE483BIN:$(pwd)/tools/sbs/bin:$EPOCROOT/epoc32/tools:$EPOCROOT/bin:$(pwd)/tools/sbs/linux-x86_64-libc2_15/bin:$PATH;
+      PATH=$SBS_GCCE463BIN:$(pwd)/tools/sbs/bin:$EPOCROOT/epoc32/tools:$EPOCROOT/bin:$(pwd)/tools/sbs/linux-x86_64-libc2_15/bin:$PATH;
     fi
 
 script:
 # Compile PPSSPP
-  - if [ "$PPSSPP_BUILD_TYPE" == "Linux" ]; then
-      ./b.sh --headless;
+  - if [ "$PPSSPP_BUILD_TYPE" != "Android" ]; then
+      ./b.sh --headless --no-package;
     fi
   - if [ "$PPSSPP_BUILD_TYPE" == "Android" ]; then
       pushd android && ./ab.sh && popd;
-    fi
-  - if [ "$PPSSPP_BUILD_TYPE" == "Blackberry" ]; then
-      ./b.sh --release --no-package;
-    fi
-  - if [ "$PPSSPP_BUILD_TYPE" == "Symbian" ]; then
-      ./b.sh --release --no-package;
     fi
 
 after_success:
