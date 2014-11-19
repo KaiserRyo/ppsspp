@@ -85,7 +85,7 @@ void Jit::ClearCache()
 {
 	blocks.Clear();
 	ClearCodeSpace();
-	//GenerateFixedCode();
+	GenerateFixedCode();
 }
 
 void Jit::InvalidateCache()
