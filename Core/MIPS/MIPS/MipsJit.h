@@ -25,6 +25,12 @@
 #include "stddef.h"
 #endif
 
+// RegCache
+#define BASEREG S7
+#define CTXREG S6
+#define CODEREG S5
+#define DOWNCOUNTREG S4
+
 namespace MIPSComp
 {
 
@@ -45,7 +51,6 @@ public:
 	Jit(MIPSState *mips);
 
 	void DoState(PointerWrap &p);
-	static void DoDummyState(PointerWrap &p);
 
 	// Compiled ops should ignore delay slots
 	// the compiler will take care of them by itself

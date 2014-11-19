@@ -70,21 +70,6 @@ void Jit::DoState(PointerWrap &p)
 	}
 }
 
-// This is here so the savestate matches between jit and non-jit.
-void Jit::DoDummyState(PointerWrap &p)
-{
-	auto s = p.Section("Jit", 1, 2);
-	if (!s)
-		return;
-
-	bool dummy = false;
-	p.Do(dummy);
-	if (s >= 2) {
-		dummy = true;
-		p.Do(dummy);
-	}
-}
-
 void Jit::FlushAll()
 {
 	//gpr.FlushAll();
@@ -129,9 +114,6 @@ void Jit::EatInstruction(MIPSOpcode op) {
 
 void Jit::CompileDelaySlot(int flags)
 {
-	//if (flags & DELAYSLOT_SAFE)
-	//	Save flags here
-
 	js.inDelaySlot = true;
 	MIPSOpcode op = Memory::Read_Opcode_JIT(js.compilerPC + 4);
 	MIPSCompileOp(op);
@@ -139,8 +121,6 @@ void Jit::CompileDelaySlot(int flags)
 
 	if (flags & DELAYSLOT_FLUSH)
 		FlushAll();
-	//if (flags & DELAYSLOT_SAFE)
-	//	Restore flags here
 }
 
 
@@ -260,12 +240,13 @@ void Jit::Comp_Generic(MIPSOpcode op)
 	MIPSInterpretFunc func = MIPSGetInterpretFunc(op);
 	if (func)
 	{
-		//SaveDowncount();
+		SaveDowncount();
 		RestoreRoundingMode();
-		// Move Imm32(js.compilerPC) in to M(&mips_->pc)
-		QuickCallFunction(V1, (void *)func);
+		MOVI2R(V0, js.compilerPC); // TODO: Use gpr
+		MovToPC(V0);
+		QuickCallFunction(V0, (void *)func);
 		ApplyRoundingMode();
-		//RestoreDowncount();
+		RestoreDowncount();
 	}
 
 	const MIPSInfo info = MIPSGetInfo(op);
@@ -278,21 +259,29 @@ void Jit::Comp_Generic(MIPSOpcode op)
 }
 
 void Jit::MovFromPC(MIPSReg r) {
+	LW(r, CTXREG, offsetof(MIPSState, pc));
 }
 
 void Jit::MovToPC(MIPSReg r) {
+	SW(r, CTXREG, offsetof(MIPSState, pc));
 }
 
 void Jit::SaveDowncount() {
+	SW(DOWNCOUNTREG, CTXREG, offsetof(MIPSState, downcount),);
 }
 
 void Jit::RestoreDowncount() {
+	LW(DOWNCOUNTREG, CTXREG, offsetof(MIPSState, downcount));
 }
 
 void Jit::WriteDownCount(int offset) {
+	int theDowncount = js.downcountAmount + offset;
+	MOVI2R(V1, theDowncount);
+	SUBU(DOWNCOUNTREG, DOWNCOUNTREG, V1);
 }
 
 void Jit::WriteDownCountR(MIPSReg reg) {
+	SUBU(DOWNCOUNTREG, DOWNCOUNTREG, reg);
 }
 
 void Jit::RestoreRoundingMode(bool force) {
@@ -315,26 +304,26 @@ void Jit::WriteExit(u32 destination, int exit_num)
 	int block = blocks.GetBlockNumberFromStartAddress(destination);
 	if (block >= 0 && jo.enableBlocklink) {
 		// It exists! Joy of joy!
-		B(blocks.GetBlock(block)->checkedEntry);
+		J(blocks.GetBlock(block)->checkedEntry);
 		b->linkStatus[exit_num] = true;
 	} else {
-		//gpr.SetRegImm(V0, destination);
-		//B((const void *)dispatcherPCInV0);
+		MOVI2R(R_AT, destination);
+		J((const void *)dispatcherPCInR0);
 	}
 }
 
 void Jit::WriteExitDestInR(MIPSReg Reg) 
 {
 	MovToPC(Reg);
-	//WriteDownCount();
+	WriteDownCount();
 	// TODO: shouldn't need an indirect branch here...
-	B((const void *)dispatcher);
+	J((const void *)dispatcher);
 }
 
 void Jit::WriteSyscallExit()
 {
-	//WriteDownCount();
-	B((const void *)dispatcherCheckCoreState);
+	WriteDownCount();
+	J((const void *)dispatcherCheckCoreState);
 }
 
 #define _RS ((op>>21) & 0x1F)
