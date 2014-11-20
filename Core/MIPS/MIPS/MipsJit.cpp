@@ -245,7 +245,6 @@ void Jit::Comp_Generic(MIPSOpcode op) {
 		MOVI2R(V0, js.compilerPC); // TODO: Use gpr
 		MovToPC(V0);
 		QuickCallFunction(V0, (void *)func);
-		NOP(); // Delay
 		ApplyRoundingMode();
 		RestoreDowncount();
 	}
@@ -305,12 +304,10 @@ void Jit::WriteExit(u32 destination, int exit_num) {
 	if (block >= 0 && jo.enableBlocklink) {
 		// It exists! Joy of joy!
 		J(blocks.GetBlock(block)->checkedEntry);
-		NOP(); // Delay
 		b->linkStatus[exit_num] = true;
 	} else {
 		MOVI2R(R_AT, destination);
 		J((const void *)dispatcherPCInR0);
-		NOP(); // Delay
 	}
 }
 
@@ -319,13 +316,11 @@ void Jit::WriteExitDestInR(MIPSReg Reg)  {
 	WriteDownCount();
 	// TODO: shouldn't need an indirect branch here...
 	J((const void *)dispatcher);
-	NOP(); // Delay
 }
 
 void Jit::WriteSyscallExit() {
 	WriteDownCount();
 	J((const void *)dispatcherCheckCoreState);
-	NOP(); // Delay
 }
 
 #define _RS ((op>>21) & 0x1F)
