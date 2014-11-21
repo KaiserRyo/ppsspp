@@ -76,7 +76,7 @@ public:
 	MIPSGen::FixupBranch BranchTypeComp(int type, MIPSReg op1, MIPSReg op2);
 	void Comp_RelBranch(MIPSOpcode op);
 	void Comp_RelBranchRI(MIPSOpcode op);
-	void Comp_FPUBranch(MIPSOpcode op) { DISABLE; }
+	void Comp_FPUBranch(MIPSOpcode op);
 	void Comp_FPULS(MIPSOpcode op) { DISABLE; }
 	void Comp_FPUComp(MIPSOpcode op) { DISABLE; }
 	void Comp_Jump(MIPSOpcode op);
@@ -90,7 +90,7 @@ public:
 	void Comp_ShiftType(MIPSOpcode op) { DISABLE; }
 	void Comp_Allegrex(MIPSOpcode op) { DISABLE; }
 	void Comp_Allegrex2(MIPSOpcode op) { DISABLE; }
-	void Comp_VBranch(MIPSOpcode op) { DISABLE; }
+	void Comp_VBranch(MIPSOpcode op);
 	void Comp_MulDivType(MIPSOpcode op) { DISABLE; }
 	void Comp_Special3(MIPSOpcode op) { DISABLE; }
 
