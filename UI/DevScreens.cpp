@@ -471,8 +471,10 @@ void JitCompareScreen::UpdateDisasm() {
 
 #if defined(ARM)
 	std::vector<std::string> targetDis = DisassembleArm2(block->normalEntry, block->codeSize);
-#else
+#elif defined(_M_IX86) || defined(_M_X64)
 	std::vector<std::string> targetDis = DisassembleX86(block->normalEntry, block->codeSize);
+#else
+	std::vector<std::string> targetDis;
 #endif
 	for (size_t i = 0; i < targetDis.size(); i++) {
 		rightDisasm_->Add(new TextView(targetDis[i]));

@@ -27,6 +27,7 @@ namespace MIPSComp {
 	Jit *jit;
 }
 
+#if defined(ARM) || !defined(MOBILE_DEVICE)
 // We compile this for x86 as well because it may be useful when developing the ARM JIT on a PC.
 std::vector<std::string> DisassembleArm2(const u8 *data, int size) {
 	std::vector<std::string> lines;
@@ -68,8 +69,9 @@ std::vector<std::string> DisassembleArm2(const u8 *data, int size) {
 	}
 	return lines;
 }
+#endif
 
-#ifndef ARM
+#if defined(_M_IX86) || defined(_M_X64)
 
 std::vector<std::string> DisassembleX86(const u8 *data, int size) {
 	std::vector<std::string> lines;
