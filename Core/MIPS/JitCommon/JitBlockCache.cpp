@@ -48,7 +48,7 @@
 #elif defined(_M_IX86) || defined(_M_X64)
 #include "Common/x64Analyzer.h"
 #include "Core/MIPS/x86/Asm.h"
-#elif defined(PPC)
+#elif defined(PPC) || defined(MIPS)
 #include "Core/MIPS/MIPS.h"
 #else
 #warning "Unsupported arch!"
@@ -437,6 +437,10 @@ void JitBlockCache::LinkBlockExits(int i) {
 				PPCXEmitter emit(b.exitPtrs[e]);
 				emit.B(blocks_[destinationBlock].checkedEntry);
 				emit.FlushIcache();
+#elif defined(MIPS)
+				MIPSEmitter emit(b.exitPtrs[e]);
+				emit.J(blocks_[destinationBlock].checkedEntry);
+				emit.FlushIcache();
 #endif
 				b.linkStatus[e] = true;
 			}
@@ -589,6 +593,12 @@ void JitBlockCache::DestroyBlock(int block_num, bool invalidate) {
 	emit.STW(R0, CTXREG, offsetof(MIPSState, pc));
 	emit.B(MIPSComp::jit->dispatcher);
 	emit.FlushIcache();
+#elif defined(MIPS)
+	MIPSEmitter emit((u8 *)b->checkedEntry);
+	emit.MOVI2R(R_AT, b->originalAddress);
+	emit.SW(R_AT, CTXREG, offsetof(MIPSState, pc));
+	emit.J(MIPSComp::jit->dispatcher);
+	emit.FlushIcache();
 #endif
 }
 
@@ -626,6 +636,8 @@ int JitBlockCache::GetBlockExitSize() {
 	return 15;
 #elif defined(PPC)
 	// TODO
+	return 0;
+#elif defined(MIPS)
 	return 0;
 #endif
 }

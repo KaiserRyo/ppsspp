@@ -89,6 +89,23 @@ void Jit::FlushAll() {
 }
 
 void Jit::FlushPrefixV() {
+	if ((js.prefixSFlag & JitState::PREFIX_DIRTY) != 0) {
+		MOVI2R(V0, js.prefixS);
+		SW(V0, CTXREG, offsetof(MIPSState, vfpuCtrl[VFPU_CTRL_SPREFIX]));
+		js.prefixSFlag = (JitState::PrefixState) (js.prefixSFlag & ~JitState::PREFIX_DIRTY);
+	}
+
+	if ((js.prefixTFlag & JitState::PREFIX_DIRTY) != 0) {
+		MOVI2R(V0, js.prefixT);
+		SW(V0, CTXREG, offsetof(MIPSState, vfpuCtrl[VFPU_CTRL_TPREFIX]));
+		js.prefixTFlag = (JitState::PrefixState) (js.prefixTFlag & ~JitState::PREFIX_DIRTY);
+	}
+
+	if ((js.prefixDFlag & JitState::PREFIX_DIRTY) != 0) {
+		MOVI2R(V0, js.prefixD);
+		SW(V0, CTXREG, offsetof(MIPSState, vfpuCtrl[VFPU_CTRL_DPREFIX]));
+		js.prefixDFlag = (JitState::PrefixState) (js.prefixDFlag & ~JitState::PREFIX_DIRTY);
+	}
 }
 
 void Jit::ClearCache() {
@@ -138,21 +155,6 @@ void Jit::Compile(u32 em_address) {
 	JitBlock *b = blocks.GetBlock(block_num);
 	DoJit(em_address, b);
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink);
-
-	bool cleanSlate = false;
-
-	if (js.hasSetRounding && !js.lastSetRounding) {
-		WARN_LOG(JIT, "Detected rounding mode usage, rebuilding jit with checks");
-		// Won't loop, since hasSetRounding is only ever set to 1.
-		js.lastSetRounding = js.hasSetRounding;
-		cleanSlate = true;
-	}
-
-	if (cleanSlate) {
-		// Our assumptions are all wrong so it's clean-slate time.
-		ClearCache();
-		Compile(em_address);
-	}
 }
 
 void Jit::RunLoopUntil(u64 globalticks) {
@@ -171,6 +173,12 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b) {
 	js.inDelaySlot = false;
 	js.PrefixStart();
 	b->normalEntry = GetCodePtr();
+	// Check downcount
+	FixupBranch noskip = BLTZ(DOWNCOUNTREG);
+	MOVI2R(R_AT, js.blockStart);
+	J((const void *)outerLoopPCInR0);
+	SetJumpTarget(noskip);
+
 	js.numInstructions = 0;
 	while (js.compiling)
 	{
@@ -229,7 +237,7 @@ void Jit::Comp_RunBlock(MIPSOpcode op) {
 }
 
 bool Jit::ReplaceJalTo(u32 dest) {
-	return true;
+	return false;
 }
 
 void Jit::Comp_ReplacementFunc(MIPSOpcode op) {
