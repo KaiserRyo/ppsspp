@@ -84,9 +84,9 @@ public:
 	void Comp_FPUBranch(MIPSOpcode op) { DISABLE; }
 	void Comp_FPULS(MIPSOpcode op) { DISABLE; }
 	void Comp_FPUComp(MIPSOpcode op) { DISABLE; }
-	void Comp_Jump(MIPSOpcode op) {DISABLE; }
-	void Comp_JumpReg(MIPSOpcode op) { DISABLE; }
-	void Comp_Syscall(MIPSOpcode op) { DISABLE; }
+	void Comp_Jump(MIPSOpcode op);
+	void Comp_JumpReg(MIPSOpcode op);
+	void Comp_Syscall(MIPSOpcode op);
 	void Comp_Break(MIPSOpcode op) { DISABLE; }
 
 	void Comp_IType(MIPSOpcode op) { DISABLE; }
