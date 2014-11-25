@@ -82,7 +82,7 @@ public:
 	void Comp_Jump(MIPSOpcode op);
 	void Comp_JumpReg(MIPSOpcode op);
 	void Comp_Syscall(MIPSOpcode op);
-	void Comp_Break(MIPSOpcode op) { DISABLE; }
+	void Comp_Break(MIPSOpcode op);
 
 	void Comp_IType(MIPSOpcode op) { DISABLE; }
 	void Comp_RType2(MIPSOpcode op) { DISABLE; }
