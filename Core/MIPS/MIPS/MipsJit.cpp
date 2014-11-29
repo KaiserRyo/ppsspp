@@ -90,20 +90,20 @@ void Jit::FlushAll() {
 
 void Jit::FlushPrefixV() {
 	if ((js.prefixSFlag & JitState::PREFIX_DIRTY) != 0) {
-		MOVI2R(V0, js.prefixS);
-		SW(V0, CTXREG, offsetof(MIPSState, vfpuCtrl[VFPU_CTRL_SPREFIX]));
+		MOVI2R(T0, js.prefixS);
+		SW(T0, CTXREG, offsetof(MIPSState, vfpuCtrl[VFPU_CTRL_SPREFIX]));
 		js.prefixSFlag = (JitState::PrefixState) (js.prefixSFlag & ~JitState::PREFIX_DIRTY);
 	}
 
 	if ((js.prefixTFlag & JitState::PREFIX_DIRTY) != 0) {
-		MOVI2R(V0, js.prefixT);
-		SW(V0, CTXREG, offsetof(MIPSState, vfpuCtrl[VFPU_CTRL_TPREFIX]));
+		MOVI2R(T0, js.prefixT);
+		SW(T0, CTXREG, offsetof(MIPSState, vfpuCtrl[VFPU_CTRL_TPREFIX]));
 		js.prefixTFlag = (JitState::PrefixState) (js.prefixTFlag & ~JitState::PREFIX_DIRTY);
 	}
 
 	if ((js.prefixDFlag & JitState::PREFIX_DIRTY) != 0) {
-		MOVI2R(V0, js.prefixD);
-		SW(V0, CTXREG, offsetof(MIPSState, vfpuCtrl[VFPU_CTRL_DPREFIX]));
+		MOVI2R(T0, js.prefixD);
+		SW(T0, CTXREG, offsetof(MIPSState, vfpuCtrl[VFPU_CTRL_DPREFIX]));
 		js.prefixDFlag = (JitState::PrefixState) (js.prefixDFlag & ~JitState::PREFIX_DIRTY);
 	}
 }
@@ -320,10 +320,10 @@ void Jit::Comp_Generic(MIPSOpcode op) {
 	{
 		SaveDowncount();
 		RestoreRoundingMode();
-		MOVI2R(V0, js.compilerPC); // TODO: Use gpr
-		MovToPC(V0);
+		MOVI2R(T3, js.compilerPC); // TODO: Use gpr
+		MovToPC(T3);
 		MOVI2R(A0, op.encoding);
-		QuickCallFunction(V0, (void *)func);
+		QuickCallFunction(T3, (void *)func);
 		ApplyRoundingMode();
 		RestoreDowncount();
 	}
@@ -354,8 +354,8 @@ void Jit::RestoreDowncount() {
 }
 
 void Jit::WriteDownCount(int offset) {
-	MOVI2R(V1, (u32)(js.downcountAmount + offset));
-	SUBU(DOWNCOUNTREG, DOWNCOUNTREG, V1);
+	MOVI2R(T2, (u32)(js.downcountAmount + offset));
+	SUBU(DOWNCOUNTREG, DOWNCOUNTREG, T2);
 }
 
 void Jit::WriteDownCountR(MIPSReg reg) {
