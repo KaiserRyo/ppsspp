@@ -20,11 +20,13 @@
 #include "Core/MIPS/JitCommon/JitState.h"
 #include "Core/MIPS/JitCommon/JitBlockCache.h"
 #include "../MIPSVFPUUtils.h"
-#include "MipsRegCache.h"
+#include "Common/MipsEmitter.h"
 
 #ifndef offsetof
 #include "stddef.h"
 #endif
+
+using namespace MIPSGen;
 
 #define DISABLE { Comp_Generic(op); return; }
 

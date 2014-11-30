@@ -48,7 +48,10 @@
 #elif defined(_M_IX86) || defined(_M_X64)
 #include "Common/x64Analyzer.h"
 #include "Core/MIPS/x86/Asm.h"
-#elif defined(PPC) || defined(MIPS)
+#elif defined(MIPS)
+#include "Core/MIPS/MIPS/MipsAsm.h"
+#include "Core/MIPS/MIPS/MipsRegCache.h"
+#elif defined(PPC)
 #include "Core/MIPS/MIPS.h"
 #else
 #warning "Unsupported arch!"
